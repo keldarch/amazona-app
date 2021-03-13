@@ -3,6 +3,7 @@ import expressAsyncHandler from "express-async-handler";
 import data from "../data.js";
 import User from "../models/userModel.js";
 
+// seed api call
 const userRouter = express.Router();
 /**
  * the express async handler was introduced here to handle error.
