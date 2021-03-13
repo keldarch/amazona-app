@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
-import { addToCart } from "../actions/cartActions";
+import { addToCart, removeFromCart } from "../actions/cartActions";
 import MessageBox from "../components/MessageBox";
 
 export default function CartScreen(props) {
@@ -21,6 +21,7 @@ export default function CartScreen(props) {
 
   const removeFromCartHandler = (id) => {
     // delete action
+    dispatch(removeFromCart(id));
   };
 
   const checkoutHandler = () => {
@@ -82,8 +83,8 @@ export default function CartScreen(props) {
           <ul>
             <li>
               <h2>
-                Subtotal ({cartItems.reduce((a, c) => a + Number(c.qty), 0)} items) : $
-                {cartItems.reduce((a, c) => a + c.price * c.qty, 0)}
+                Subtotal ({cartItems.reduce((a, c) => a + Number(c.qty), 0)}{" "}
+                items) : ${cartItems.reduce((a, c) => a + c.price * c.qty, 0)}
               </h2>
             </li>
             <li>
