@@ -27,6 +27,7 @@ app.get("/", (req, res) => {
   res.send("Server is ready");
 });
 
+// error handling middleware for express
 // this code combined with expressAsyncHandler in userRouter can handle errors
 app.use((err, req, res, next) => {
   res.status(500).send({ message: err.message });

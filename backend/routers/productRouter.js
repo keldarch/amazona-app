@@ -28,10 +28,14 @@ productRouter.get(
   "/:id",
   expressAsyncHandler(async (req, res) => {
     // await resolves the promise to real data
-    const product = await Product.findById(req.params.id);
-    if (product) {
-      res.send(product);
-    } else {
+    try {
+      const product = await Product.findById(req.params.id);
+      if (product) {
+        res.send(product);
+      } else {
+        res.status(404).send({ message: "Product Not Found" });
+      }
+    } catch (err) {
       res.status(404).send({ message: "Product Not Found" });
     }
   })
