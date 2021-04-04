@@ -45,7 +45,7 @@ orderRouter.get(
   isAuth,
   expressAsyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
-    if (order) {
+    if (order && order.user == req.user._id) {
       res.send(order);
     } else {
       res.status(404).send({ message: "Order Not Found" });
