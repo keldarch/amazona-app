@@ -4,7 +4,7 @@ import expressAsyncHandler from "express-async-handler";
 import bcrypt from "bcryptjs";
 import data from "../data.js";
 import User from "../models/userModel.js";
-import { generateToken } from "../utils.js";
+import { generateToken, isAuth } from "../utils.js";
 
 // seed api call
 const userRouter = express.Router();
@@ -59,6 +59,23 @@ userRouter.post(
       isAdmin: createdUser.isAdmin,
       token: generateToken(createdUser),
     });
+  })
+);
+
+userRouter.get(
+  "/:id",
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    if (req.user._id != req.params.id) {
+      res.status(401).send({ message: "Not Allowed" });
+      return;
+    }
+    const user = await User.findById(req.params.id);
+    if (user) {
+      res.send({ name: user.name, email: user.email });
+    } else {
+      res.status(404).send({ message: "User Not Found" });
+    }
   })
 );
 
