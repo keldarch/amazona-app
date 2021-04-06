@@ -4,7 +4,7 @@ import expressAsyncHandler from "express-async-handler";
 import bcrypt from "bcryptjs";
 import data from "../data.js";
 import User from "../models/userModel.js";
-import { generateToken, isAuth } from "../utils.js";
+import { generateToken, isAdmin, isAuth } from "../utils.js";
 
 // seed api call
 const userRouter = express.Router();
@@ -66,19 +66,26 @@ userRouter.get(
   "/:id",
   isAuth,
   expressAsyncHandler(async (req, res) => {
-    if (req.user._id != req.params.id) {
+    if (!req.user.isAdmin && req.user._id != req.params.id) {
       res.status(401).send({ message: "Not Allowed" });
       return;
     }
     const user = await User.findById(req.params.id);
     if (user) {
-      res.send({ _id: user._id, name: user.name, email: user.email });
+      res.send({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        isSeller: user.isSeller,
+      });
     } else {
       res.status(404).send({ message: "User Not Found" });
     }
   })
 );
 
+// allows users to edit their user info
 userRouter.put(
   "/profile",
   isAuth,
@@ -98,6 +105,55 @@ userRouter.put(
         isAdmin: updateUser.isAdmin,
         token: generateToken(updateUser),
       });
+    }
+  })
+);
+
+userRouter.get(
+  "/",
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const users = await User.find({});
+    res.send(users);
+  })
+);
+
+userRouter.delete(
+  "/:id",
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id);
+    if (user) {
+      if (user.email === "admin@example.com") {
+        res.status(400).send({ message: "Cannot Delete Admin User" });
+        return;
+      }
+      const deleteUser = await user.remove();
+      res.send({ message: "User Deleted", user: deleteUser });
+    } else {
+      res.status(404).send({ message: "User Not Found" });
+    }
+  })
+);
+
+// allows admins to edit user info
+userRouter.put(
+  "/:id",
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id);
+    if (user) {
+      user.name = req.body.name || user.name;
+      user.email = req.body.email || user.email;
+      user.isSeller = req.body.isSeller;
+      user.isAdmin = req.body.isAdmin;
+      const updateUser = await user.save();
+      res.send({ message: "User Updated", user: updateUser });
+    } else {
+      res.status(404).send({ message: "User Not Found" });
     }
   })
 );
