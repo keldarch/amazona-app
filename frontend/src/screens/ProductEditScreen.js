@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import axios from "../../node_modules/axios/index";
 import { detailsProduct, updateProduct } from "../actions/productActions";
 import LoadingBox from "../components/LoadingBox";
 import MessageBox from "../components/MessageBox";
@@ -58,6 +59,34 @@ export default function ProductEditScreen(props) {
       })
     );
   };
+  const [loadingUpload, setLoadingUpload] = useState(false);
+  const [errorUpload, setErrorUpload] = useState("");
+
+  const userSignin = useSelector((state) => state.userSignin);
+  const { userInfo } = userSignin;
+
+  const uploadFileHandler = async (e) => {
+    // only upload the first file chosen.
+    const file = e.target.files[0];
+    // use form data to specify multi part form
+    // and add in the chosen image under the "image" form value
+    const bodyFormData = new FormData();
+    bodyFormData.append("image", file);
+    setLoadingUpload(true);
+    try {
+      const { data } = await axios.post("/api/uploads", bodyFormData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${userInfo.token}`,
+        },
+      });
+      setImage(data);
+      setLoadingUpload(false);
+    } catch (error) {
+      setErrorUpload(error.message);
+      setLoadingUpload(false);
+    }
+  };
   return (
     <div>
       <div>
@@ -104,6 +133,19 @@ export default function ProductEditScreen(props) {
                   value={image}
                   onChange={(e) => setImage(e.target.value)}
                 />
+              </div>
+              <div>
+                <label htmlFor="imageFile">Image File</label>
+                <input
+                  type="file"
+                  id="imageFile"
+                  label="Choose Image"
+                  onChange={uploadFileHandler}
+                />
+                {loadingUpload && <LoadingBox></LoadingBox>}
+                {errorUpload && (
+                  <MessageBox variant="danger">{errorUpload}</MessageBox>
+                )}
               </div>
               <div>
                 <label htmlFor="category">Category</label>
