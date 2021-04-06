@@ -1,9 +1,20 @@
 import express from "express";
 import expressAsyncHandler from "express-async-handler";
 import Order from "../models/orderModel.js";
-import { isAuth } from "../utils.js";
+import { isAdmin, isAuth } from "../utils.js";
 
 const orderRouter = express.Router();
+
+orderRouter.get(
+  "/",
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    // grab all orders. From the user collection reference, get only the name
+    const orders = await Order.find({}).populate("user", "name");
+    res.send(orders);
+  })
+);
 
 orderRouter.get(
   "/mine",
@@ -39,13 +50,12 @@ orderRouter.post(
   })
 );
 
-// TODO: verify that this order is the authenticated user's order
 orderRouter.get(
   "/:id",
   isAuth,
   expressAsyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
-    if (order && order.user == req.user._id) {
+    if (order && (order.user == req.user._id || req.user.isAdmin)) {
       res.send(order);
     } else {
       res.status(404).send({ message: "Order Not Found" });
@@ -72,6 +82,21 @@ orderRouter.put(
       res.send({ message: "Order Paid", order: updatedOrder });
     } else {
       res.status(401).send({ message: "Order Not Found" });
+    }
+  })
+);
+
+orderRouter.delete(
+  "/:id",
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+    if (order) {
+      const deleteOrder = await order.remove();
+      res.send({ message: "Order Deleted", order: deleteOrder });
+    } else {
+      res.status(404).send({ message: "Order Not Found" });
     }
   })
 );
