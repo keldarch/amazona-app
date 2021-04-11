@@ -17,7 +17,15 @@ export default function Product(props) {
           rating={product.rating}
           numReviews={product.numReviews}
         ></Rating>
-        <div className="price">${product.price}</div>
+        <div className="row">
+          <div className="price">${product.price}</div>
+          <div>
+            <Link to={`/seller/${product.seller._id}`}>
+              {/** the product.seller is referencing the user model which has it's own seller object in it */}
+              {product.seller.seller.name}
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
