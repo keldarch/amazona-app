@@ -33,6 +33,7 @@ userRouter.post(
           name: user.name,
           email: user.email,
           isAdmin: user.isAdmin,
+          isSeller: user.isSeller,
           token: generateToken(user),
         });
         return;
@@ -57,6 +58,7 @@ userRouter.post(
       name: createdUser.name,
       email: createdUser.email,
       isAdmin: createdUser.isAdmin,
+      isSeller: createdUser.isSeller,
       token: generateToken(createdUser),
     });
   })
@@ -78,6 +80,7 @@ userRouter.get(
         email: user.email,
         isAdmin: user.isAdmin,
         isSeller: user.isSeller,
+        seller: user.seller,
       });
     } else {
       res.status(404).send({ message: "User Not Found" });
@@ -94,6 +97,12 @@ userRouter.put(
     if (user) {
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
+      if (user.isSeller) {
+        user.seller.name = req.body.sellerName || user.seller.name;
+        user.seller.logo = req.body.sellerLogo || user.seller.logo;
+        user.seller.description =
+          req.body.sellerDescription || user.seller.description;
+      }
       if (req.body.password) {
         user.password = bcrypt.hashSync(req.body.password, 8);
       }
@@ -103,6 +112,8 @@ userRouter.put(
         name: updateUser.name,
         email: updateUser.email,
         isAdmin: updateUser.isAdmin,
+        isSeller: updateUser.isSeller,
+        seller: updateUser.seller,
         token: generateToken(updateUser),
       });
     }
